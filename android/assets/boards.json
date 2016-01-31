@@ -1,0 +1,24 @@
+[
+  {
+     "board": [
+        "+-------+",
+        "|A      |",
+        "|##  112|",
+        "| B     |",
+        "+-------+"
+     ],
+     "solution": "ulrdlrul",
+     "verified": false
+  },
+  {
+    "board": [
+      "+----+   ",
+      "|A   +--+",
+      "|    112|",
+      "| B     |",
+      "+-------+"
+    ],
+    "solution": "ulrdlrul",
+    "verified": false
+  }
+]
