@@ -17,7 +17,11 @@ public class Tile {
 
     int i, j;
 
-    public String toString() {
+    public boolean isTraversable() {
+        return this.type == Type.EMPTY || this.type == Type.HOLE;
+    }
+
+    public String toDebugString() {
         String typeString = "Undefined";
         String extra = "";
         switch(type) {
@@ -41,6 +45,24 @@ public class Tile {
                 break;
         }
         return "(" + i + "," + j + ")" + " " + typeString + " " + extra;
+    }
+
+    public String toString() {
+        switch(type) {
+            case EMPTY:
+                return " ";
+            case HOLE:
+                return "" + (char)('A' + holeNumber - 1);
+            case BLOCK:
+                return "#";
+            case WALL:
+                boolean vertical = wallNorth || wallSouth;
+                boolean horizontal = wallWest || wallEast;
+                if (horizontal && vertical) return "+";
+                if (horizontal) return "-";
+                return "|";
+        }
+        return "?";
     }
 
 }

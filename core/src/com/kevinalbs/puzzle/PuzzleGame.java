@@ -35,7 +35,13 @@ public class PuzzleGame extends ApplicationAdapter {
         if (options.isDebugging()) {
             BoardReader reader = new BoardReader();
             Board board = reader.getBoard(1);
-            board.printDebug();
+            System.out.println(board);
+            System.out.println(board.getMoveSpaces(Board.Direction.NORTH));
+            System.out.println(board.getMoveSpaces(Board.Direction.EAST));
+            System.out.println(board.getMoveSpaces(Board.Direction.SOUTH));
+            System.out.println(board.getMoveSpaces(Board.Direction.WEST));
+            board.move(Board.Direction.WEST);
+            System.out.println(board);
         }
 	}
 

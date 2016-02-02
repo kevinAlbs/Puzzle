@@ -10,4 +10,8 @@ public class Piece {
         this.j = j;
         this.pieceNumber = pieceNumber;
     }
+
+    public String toString() {
+        return this.pieceNumber + "";
+    }
 }
