@@ -46,15 +46,6 @@ public class Board {
         return str;
     }
 
-    public void toDebugString() {
-        String returnString = "";
-        for (int i = 0; i < boardHeight; i++) {
-            for (int j = 0; j < boardWidth; j++) {
-                returnString += tileAt(i,j).toDebugString() + "\n";
-            }
-        }
-    }
-
     public boolean inBounds(int i, int j) {
         return !(i < 0 || j < 0 || i >= boardHeight || j >= boardWidth);
     }
@@ -72,7 +63,7 @@ public class Board {
             throw new IllegalArgumentException("Unexpected request for invalid tile location");
         }
         for (Piece piece : this.pieces) {
-            if (piece.i == i && piece.j == j) return piece;
+            if (piece.i() == i && piece.j() == j) return piece;
         }
         return null;
     }
@@ -117,10 +108,11 @@ public class Board {
         int numSpaces = getMoveSpaces(direction);
         int iDiff = numSpaces * iIncrement(direction);
         int jDiff = numSpaces * jIncrement(direction);
+        LinkedList<Piece> newPieces = new LinkedList<Piece>();
         for (Piece piece: pieces) {
-            piece.i += iDiff;
-            piece.j += jDiff;
+            newPieces.add(piece.move(iDiff, jDiff));
         }
+        pieces = newPieces;
     }
     // TODO.
 

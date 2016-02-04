@@ -65,39 +65,40 @@ public class BoardReader {
     // Fills in the type, wall directions, and hole number if applicable.
     private void parseTiles(int boardWidth, Array<Character> unparsedTiles, Array<Tile> tileList) {
         int boardHeight = unparsedTiles.size / boardWidth;
+        Array<Tile.Maker> tileMakerList = new Array<Tile.Maker>();
         for (int i = 0; i < boardHeight; i++) {
             for (int j = 0; j < boardWidth; j++) {
-                Tile tile = new Tile();
+                Tile.Maker tileMaker = new Tile.Maker();
                 char character = unparsedTiles.get(i * boardWidth + j);
-                tile.type = getTileType(character);
-                tile.i = i;
-                tile.j = j;
+                tileMaker.type = getTileType(character);
+                tileMaker.i = i;
+                tileMaker.j = j;
 
-                if (tile.type == Tile.Type.HOLE) {
-                    tile.holeNumber = character - 'A' + 1;
+                if (tileMaker.type == Tile.Type.HOLE) {
+                    tileMaker.holeNumber = character - 'A' + 1;
                 }
 
                 // The north and west tiles (if they exist) are already initialized.
                 // We can use this to determine the wall relations without a second pass.
-                if (tile.type == Tile.Type.WALL) {
+                if (tileMaker.type == Tile.Type.WALL) {
                     if (j > 0) {
-                        Tile west = tileList.get(i * boardWidth + (j - 1));
+                        Tile.Maker west = tileMakerList.get(i * boardWidth + (j - 1));
                         if (west.type == Tile.Type.WALL) {
                             west.wallEast = true;
-                            tile.wallWest = true;
+                            tileMaker.wallWest = true;
                         }
                     }
 
                     if (i > 0) {
-                        Tile north = tileList.get((i - 1) * boardWidth + j);
+                        Tile.Maker north = tileMakerList.get((i - 1) * boardWidth + j);
                         if (north.type == Tile.Type.WALL) {
                             north.wallSouth = true;
-                            tile.wallNorth = true;
+                            tileMaker.wallNorth = true;
                         }
                     }
                 }
 
-                tileList.add(tile);
+                tileMakerList.add(tileMaker);
             }
         }
         // One final pass is done to check whether empty tiles are inside or outside of the board.
@@ -108,13 +109,14 @@ public class BoardReader {
         for (int i = 0; i < boardHeight; i++) {
             boolean isOutside = true;
             for (int j = 0; j < boardWidth; j++) {
-                Tile tile = tileList.get(i * boardWidth + j);
-                if (tile.type == Tile.Type.EMPTY) {
-                    tile.isOutside = isOutside;
+                Tile.Maker tileMaker = tileMakerList.get(i * boardWidth + j);
+                if (tileMaker.type == Tile.Type.EMPTY) {
+                    tileMaker.isOutside = isOutside;
                 }
-                if (tile.type == Tile.Type.WALL && tile.wallNorth && tile.wallSouth) {
+                if (tileMaker.type == Tile.Type.WALL && tileMaker.wallNorth && tileMaker.wallSouth) {
                     isOutside = !isOutside;
                 }
+                tileList.add(tileMaker.make());
             }
         }
 
