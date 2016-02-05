@@ -12,12 +12,17 @@ public class Board {
     private int boardWidth, boardHeight;
     private Array<Tile> tiles;
     private LinkedList<Piece> pieces;
+    private LinkedList<BoardChange> boardChanges;
+    // Cleared upon every move.
+    private LinkedList<BoardChange> undos;
 
     public Board(int width, Array<Tile> tiles, LinkedList<Piece> pieces) {
         this.tiles = tiles;
         this.pieces = pieces;
         this.boardWidth = width;
         this.boardHeight = tiles.size / boardWidth;
+        this.boardChanges = new LinkedList<BoardChange>();
+        this.undos = new LinkedList<BoardChange>();
     }
 
     public Array<Tile> getTiles() {
@@ -104,15 +109,26 @@ public class Board {
         return minSpaces;
     }
 
-    public void move(Direction direction) {
+    public BoardChange move(Direction direction) {
+        clearUndos();
         int numSpaces = getMoveSpaces(direction);
         int iDiff = numSpaces * iIncrement(direction);
         int jDiff = numSpaces * jIncrement(direction);
         LinkedList<Piece> newPieces = new LinkedList<Piece>();
+        LinkedList<Piece> piecesRemoved = new LinkedList<Piece>();
         for (Piece piece: pieces) {
-            newPieces.add(piece.move(iDiff, jDiff));
+            Piece moved = piece.move(iDiff, jDiff);
+            Tile tile = tileAt(moved.i, moved.j);
+            if (tile.type() == Tile.Type.HOLE && tile.holeNumber() == moved.pieceNumber()) {
+                piecesRemoved.add(moved);
+            } else {
+                newPieces.add(moved);
+            }
         }
         pieces = newPieces;
+        BoardChange change = new BoardChange(null, piecesRemoved, direction, numSpaces);
+        boardChanges.add(change);
+        return change;
     }
     // TODO.
 
@@ -122,9 +138,48 @@ public class Board {
         return null;
     }
 
-    public void undo() {
-
+    public BoardChange undo() {
+        // Get the most recent move and perform the inverse.
+        if (boardChanges.size() == 0) return null;
+        BoardChange inverse = boardChanges.removeLast().invert();
+        applyBoardChange(inverse);
+        undos.add(inverse);
+        return inverse;
     }
+
+    public BoardChange redo() {
+        if (undos.size() == 0) return null;
+        BoardChange inverse = undos.removeLast().invert();
+        applyBoardChange(inverse);
+        boardChanges.add(inverse);
+        return inverse;
+    }
+
+    private void applyBoardChange(BoardChange change) {
+        // Add the pieces before inverting the movement.
+        if (change.piecesAddedBefore() != null) {
+            pieces.addAll(change.piecesAddedBefore());
+        }
+        // Invert the movement.
+        int iDiff = change.numSpaces() * iIncrement(change.direction());
+        int jDiff = change.numSpaces() * jIncrement(change.direction());
+        LinkedList<Piece> newPieces = new LinkedList<Piece>();
+        // Move all pieces.
+        for(Piece piece : pieces) {
+            newPieces.add(piece.move(iDiff, jDiff));
+        }
+        // Remove any pieces which were removed after movement.
+        if (change.piecesRemovedAfter() != null) {
+            newPieces.removeAll(change.piecesRemovedAfter());
+        }
+        pieces = newPieces;
+    }
+
+    // Clears linked list of undos.
+    private void clearUndos() {
+        undos = new LinkedList<BoardChange>();
+    }
+
 
     public static int iIncrement(Direction direction) {
         return direction == Direction.NORTH ? -1 : direction == Direction.SOUTH ? 1 : 0;

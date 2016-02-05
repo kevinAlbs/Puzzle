@@ -36,11 +36,17 @@ public class PuzzleGame extends ApplicationAdapter {
             BoardReader reader = new BoardReader();
             Board board = reader.getBoard(1);
             System.out.println(board);
-            System.out.println(board.getMoveSpaces(Board.Direction.NORTH));
-            System.out.println(board.getMoveSpaces(Board.Direction.EAST));
-            System.out.println(board.getMoveSpaces(Board.Direction.SOUTH));
-            System.out.println(board.getMoveSpaces(Board.Direction.WEST));
+            System.out.println("Moving west");
             board.move(Board.Direction.WEST);
+            System.out.println(board);
+            System.out.println("Moving north");
+            BoardChange change = board.move(Board.Direction.NORTH);
+            for (Piece piece: change.piecesRemovedAfter()) {
+                System.out.println("Removed piece " + piece.toString());
+            }
+            System.out.println(board);
+            System.out.println("Undo");
+            board.undo();
             System.out.println(board);
         }
 	}
