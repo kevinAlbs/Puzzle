@@ -8,13 +8,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector3;
 
 public class PuzzleGame extends ApplicationAdapter {
     ShapeRenderer shapeRenderer;
-    Texture piece2;
+    Texture piece2, wall;
 	SpriteBatch batch;
     OrthographicCamera camera;
     Options options;
+    DisplayBoard displayBoard;
 
 	public PuzzleGame() {
         super();
@@ -28,13 +30,17 @@ public class PuzzleGame extends ApplicationAdapter {
 	@Override
 	public void create () {
         shapeRenderer = new ShapeRenderer();
-        camera = new OrthographicCamera(400, 400 * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
         piece2 = new Texture("piece-2.png");
+        wall = new Texture("wall.png");
 		batch = new SpriteBatch();
+
 
         if (options.isDebugging()) {
             BoardReader reader = new BoardReader();
             Board board = reader.getBoard(1);
+            displayBoard = new DisplayBoard(this, batch, board);
             System.out.println(board);
             System.out.println("Moving west");
             board.move(Board.Direction.WEST);
@@ -56,23 +62,11 @@ public class PuzzleGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(.957f, .957f, .957f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         camera.update();
+
         batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-        batch.draw(piece2, 50, 50);
-        batch.end();
+        displayBoard.render(batch);
 
-        int radius = 20;
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.setColor(.380f, 1, .592f, 1);
-        shapeRenderer.circle(100, 100, radius);
-        shapeRenderer.end();
 
-        shapeRenderer.begin(ShapeType.Line);
-        shapeRenderer.setColor(.376f, .714f, .357f, 1);
-        shapeRenderer.circle(100, 100, radius);
-        shapeRenderer.circle(100, 100, radius+1);
-        shapeRenderer.end();
 
 	}
 }

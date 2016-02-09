@@ -25,6 +25,10 @@ public class Board {
         this.undos = new LinkedList<BoardChange>();
     }
 
+    public int getWidth() { return boardWidth; }
+
+    public int getHeight() { return boardHeight; }
+
     public Array<Tile> getTiles() {
         return tiles;
     }
