@@ -59,6 +59,25 @@ public class Board {
         return !(i < 0 || j < 0 || i >= boardHeight || j >= boardWidth);
     }
 
+    // Returns null if non exists.
+    public Tile tileBelow(Tile tile) {
+        if (!inBounds(tile.i() + 1, tile.j())) return null;
+        return tileAt(tile.i() + 1, tile.j());
+    }
+
+    public Tile tileRightOf(Tile tile) {
+        if (!inBounds(tile.i(), tile.j() + 1)) return null;
+        return tileAt(tile.i(), tile.j() + 1);
+    }
+
+    public Tile tileEncased(Tile tile) {
+        if (!tile.isWallCorner()) throw new IllegalArgumentException("Tile must be a corner");
+        int iIncrement = tile.wallSouth() ? 1 : -1;
+        int jIncrement = tile.wallEast() ? 1 : -1;
+        if (!inBounds(tile.i() + iIncrement, tile.j() + jIncrement)) return null;
+        return tileAt(tile.i() + iIncrement, tile.j() + jIncrement);
+    }
+
     public Tile tileAt(int i, int j) {
         if (!inBounds(i,j)) {
             throw new IllegalArgumentException("Unexpected request for invalid tile location");

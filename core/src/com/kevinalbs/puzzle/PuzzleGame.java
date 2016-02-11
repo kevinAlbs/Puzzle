@@ -55,6 +55,10 @@ public class PuzzleGame extends ApplicationAdapter {
             board.undo();
             System.out.println(board);
         }
+
+        // Disable continuous rendering until a swipe motion is made.
+        Gdx.graphics.setContinuousRendering(false);
+        Gdx.graphics.requestRendering();
 	}
 
 	@Override

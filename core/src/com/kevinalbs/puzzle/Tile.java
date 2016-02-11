@@ -3,6 +3,7 @@ package com.kevinalbs.puzzle;
 /**
  * Created by Kevin on 1/30/2016.
  * Class is immutable.
+ * A wall tile may only be connected to two other walls.
  */
 public class Tile {
     enum Type {EMPTY, HOLE, BLOCK, WALL};
@@ -26,6 +27,14 @@ public class Tile {
     public boolean wallSouth() { return wallSouth; }
     public boolean wallWest() { return wallWest; }
     public boolean wallEast() { return wallEast; }
+    public boolean isWallHorizontal() { return wallWest && wallEast; }
+    public boolean isWallVertical() { return wallNorth && wallSouth; }
+    public boolean isWallCorner() {
+        return (wallNorth && wallWest) ||
+                (wallNorth && wallEast) ||
+                (wallSouth && wallWest) ||
+                (wallSouth && wallEast);
+    }
     public int holeNumber() { return holeNumber; }
     public int i() { return i; }
     public int j() { return j; }
@@ -69,6 +78,8 @@ public class Tile {
             tile.wallSouth = this.wallSouth;
             tile.wallWest = this.wallWest;
             tile.wallEast = this.wallEast;
+            tile.i = this.i;
+            tile.j = this.j;
             return tile;
         }
     }
