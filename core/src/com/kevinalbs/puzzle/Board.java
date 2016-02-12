@@ -31,12 +31,14 @@ public class Board {
 
     public int getNumRows() { return boardHeight; }
 
-    public Array<Tile> getTiles() {
-        return tiles;
+    public void getTiles(Array<Tile> out) {
+        out.clear();
+        out.addAll(tiles);
     }
 
-    public LinkedList<Piece> getPieces() {
-        return pieces;
+    public void getPieces(LinkedList<Piece> out) {
+        out.clear();
+        out.addAll(pieces);
     }
 
     // Returns true iff all pieces are removed, meaning the player has won.
@@ -135,8 +137,12 @@ public class Board {
     }
 
     public BoardChange move(Direction direction) {
-        clearUndos();
         int numSpaces = getMoveSpaces(direction);
+        if (numSpaces == 0) {
+            // Move does not change the board state.
+            return null;
+        }
+        clearUndos();
         int iDiff = numSpaces * iIncrement(direction);
         int jDiff = numSpaces * jIncrement(direction);
         LinkedList<Piece> newPieces = new LinkedList<Piece>();

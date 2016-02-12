@@ -48,18 +48,30 @@ public class PuzzleGame extends ApplicationAdapter {
         camera.update();
 
         BoardChange change = null;
+        Direction direction = null;
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-             change = board.move(Direction.EAST);
+            direction = Direction.EAST;
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+            direction = Direction.WEST;
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+            direction = Direction.NORTH;
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+            direction = Direction.SOUTH;
         }
 
-        if (change != null) {
-            displayBoard.interpolateChange(change);
+        // A move can only be made once the display board is idle.
+        if (direction != null && displayBoard.isIdle()) {
+            change = board.move(direction);
+            if (change != null) {
+                displayBoard.interpolateChange(change);
+            }
         }
+
 
         batch.setProjectionMatrix(camera.combined);
         displayBoard.render(batch);
 
-        if (displayBoard.isInterpolating()) {
+        if (!displayBoard.isIdle()) {
             Gdx.graphics.requestRendering();
         }
 	}

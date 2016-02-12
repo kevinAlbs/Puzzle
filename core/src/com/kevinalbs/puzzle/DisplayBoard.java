@@ -9,17 +9,22 @@ import com.badlogic.gdx.math.Interpolation;
 import com.kevinalbs.puzzle.Board.Direction;
 import com.kevinalbs.puzzle.Tile.Type;
 
+import java.util.LinkedList;
 
 
 /**
  * Created by Kevin on 2/8/2016.
  * This class manages the rendering of the board and pieces.
  * It assumes that the viewport size is unchanging.
- * All drawing is done with y coordinates from top to bottom (flipped from standard).
+ * All drawing is done assuming y coordinates are from top to bottom (flipped from standard).
  */
 public class DisplayBoard {
     private PuzzleGame game;
     private Board board;
+    private enum State { ADDING, REMOVING, INTERPOLATING, IDLE };
+
+    // The time in seconds it takes to interpolate one move.
+    private static final float INTERPOLATION_TIME = .5f;
 
     private static final float SCREEN_WIDTH = Gdx.graphics.getWidth();
     private static final float SCREEN_HEIGHT = Gdx.graphics.getHeight();
@@ -49,10 +54,15 @@ public class DisplayBoard {
     private Texture wallTexture;
     private Array<Texture> pieceTextures;
     private Array<Texture> holeTextures;
+    private LinkedList<Piece> pieces;
+
+    private State state = State.IDLE;
 
     public DisplayBoard(PuzzleGame game, Board board) {
         this.game = game;
         this.board = board;
+        this.pieces = new LinkedList<Piece>();
+        board.getPieces(this.pieces);
         this.wallTexture = new Texture("wall.png");
         this.holeTextures = new Array<Texture>();
         this.pieceTextures = new Array<Texture>();
@@ -113,7 +123,7 @@ public class DisplayBoard {
             }
         }
 
-        for (Piece piece: board.getPieces()) {
+        for (Piece piece: this.pieces) {
             drawPiece(batch, piece);
         }
         batch.end();
@@ -121,13 +131,19 @@ public class DisplayBoard {
 
 
     public void interpolateChange(BoardChange change) {
+        if (!isIdle()) {
+            throw new IllegalStateException("Cannot interpolate new change, already interpolating");
+        }
         Direction direction = change.direction();
         int iDiff = Board.iIncrement(direction);
         int jDiff = Board.jIncrement(direction);
+
+        // TODO actually interpolate.
+        this.board.getPieces(this.pieces);
     }
 
-    public boolean isInterpolating() {
-        return true;
+    public boolean isIdle() {
+        return state == State.IDLE;
     }
 
     private void drawPiece(Batch batch, Piece piece) {
