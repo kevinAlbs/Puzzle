@@ -9,6 +9,8 @@ import java.util.LinkedList;
  */
 public class Board {
     public enum Direction {NORTH, EAST, SOUTH, WEST};
+    public static int MAX_PIECES = 2;
+
     private int boardWidth, boardHeight;
     private Array<Tile> tiles;
     private LinkedList<Piece> pieces;
@@ -25,9 +27,9 @@ public class Board {
         this.undos = new LinkedList<BoardChange>();
     }
 
-    public int getWidth() { return boardWidth; }
+    public int getNumCols() { return boardWidth; }
 
-    public int getHeight() { return boardHeight; }
+    public int getNumRows() { return boardHeight; }
 
     public Array<Tile> getTiles() {
         return tiles;

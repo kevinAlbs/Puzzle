@@ -4,15 +4,18 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.math.Interpolation;
 
 import com.kevinalbs.puzzle.Board.Direction;
 import com.kevinalbs.puzzle.Tile.Type;
+
 
 
 /**
  * Created by Kevin on 2/8/2016.
  * This class manages the rendering of the board and pieces.
  * It assumes that the viewport size is unchanging.
+ * All drawing is done with y coordinates from top to bottom (flipped from standard).
  */
 public class DisplayBoard {
     private PuzzleGame game;
@@ -34,35 +37,46 @@ public class DisplayBoard {
 
     // The following corresponds to available images to render piece sizes. This must be in
     // increasing sorted order and have corresponding pieces/<x>/piece#.png files.
-    private float[] availableDiameterSizes = {20, 32, 64, 128};
-    private float borderSize = 2;
+    private int[] availableDiameterSizes = {20, 32, 64, 128};
+    private int borderSize = 2;
 
     // If there is extra room, the board is centered. The offsets say how much space from the
     // north/west to start the board.
     private float northCenterOffset = 0;
     private float westCenterOffset = 0;
 
-    private int nHorizontal;
-    private int nVertical;
-
-    private float diameter;
+    private int diameter;
     private Texture wallTexture;
     private Array<Texture> pieceTextures;
+    private Array<Texture> holeTextures;
 
-    public DisplayBoard(PuzzleGame game, Batch batch, Board board) {
-        nHorizontal = board.getWidth();
-        nVertical = board.getHeight();
+    public DisplayBoard(PuzzleGame game, Board board) {
         this.game = game;
         this.board = board;
         this.wallTexture = new Texture("wall.png");
+        this.holeTextures = new Array<Texture>();
         this.pieceTextures = new Array<Texture>();
-        this.pieceTextures.add(new Texture("pieces/32/2.png"));
+
+        determineDimensions();
+
+        for (int i = 1; i <= Board.MAX_PIECES; i++) {
+            // Load appropriate piece textures based on screen size.
+            this.pieceTextures.add(new Texture("pieces/" + diameter + "/" + i + ".png"));
+            this.holeTextures.add(new Texture("holes/" + i + ".png"));
+        }
+
+    }
+
+    public void determineDimensions() {
+        int numRows = board.getNumRows();
+        int numCols = board.getNumCols();
+
         // TODO If the screen size is large enough, make the border thicker.
         // If the preferred size cannot fit in either width/height of screen, scale down.
         float maxDiameterHorizontal =
-                (SCREEN_WIDTH - (PADDING * 2) - (nHorizontal + 1) * borderSize) / nHorizontal;
+                (SCREEN_WIDTH - (PADDING * 2) - (numCols + 1) * borderSize) / numCols;
         float maxDiameterVertical =
-                (SCREEN_HEIGHT - (PADDING * 2) - (nVertical + 1) * borderSize) / nVertical;
+                (SCREEN_HEIGHT - (PADDING * 2) - (numRows + 1) * borderSize) / numRows;
         float maxDiameter = Math.min(maxDiameterHorizontal, maxDiameterVertical);
         int chosenIndex = -1;
         for (int i = PREFERRED_DIAMETER_INDEX; i >= 0; i--) {
@@ -77,7 +91,7 @@ public class DisplayBoard {
 
         // Now, attempt to increase the chosenIndex if we are below the preferred percentage.
         while (chosenIndex < availableDiameterSizes.length - 1
-            && availableDiameterSizes[chosenIndex] / maxDiameter < PREFERRED_MIN_RATIO_FILLED) {
+                && availableDiameterSizes[chosenIndex] / maxDiameter < PREFERRED_MIN_RATIO_FILLED) {
             if (availableDiameterSizes[chosenIndex + 1] < maxDiameter) chosenIndex++;
         }
 
@@ -85,16 +99,16 @@ public class DisplayBoard {
         System.out.println("Choosing to use diameter size of " + diameter);
 
         // Compute the centering offsets.
-        float boardWidth = (nHorizontal + 1) * borderSize + nHorizontal * diameter;
-        float boardHeight = (nVertical + 1) * borderSize + nVertical * diameter;
+        float boardWidth = (numCols + 1) * borderSize + numCols * diameter;
+        float boardHeight = (numRows + 1) * borderSize + numRows * diameter;
         westCenterOffset = (SCREEN_WIDTH - boardWidth) / 2;
         northCenterOffset = (SCREEN_HEIGHT - boardHeight) / 2;
     }
 
     public void render(Batch batch) {
         batch.begin();
-        for (int i = 0; i < nVertical; i++) {
-            for (int j = 0; j < nHorizontal; j++) {
+        for (int i = 0; i < board.getNumRows(); i++) {
+            for (int j = 0; j < board.getNumCols(); j++) {
                 this.drawTile(batch, board.tileAt(i,j));
             }
         }
@@ -105,8 +119,20 @@ public class DisplayBoard {
         batch.end();
     }
 
+
+    public void interpolateChange(BoardChange change) {
+        Direction direction = change.direction();
+        int iDiff = Board.iIncrement(direction);
+        int jDiff = Board.jIncrement(direction);
+    }
+
+    public boolean isInterpolating() {
+        return true;
+    }
+
     private void drawPiece(Batch batch, Piece piece) {
-        batch.draw(pieceTextures.get(0), getGridX(piece.j()), getGridY(piece.i()));
+        Texture pieceTexture = pieceTextures.get(piece.pieceNumber() - 1);
+        batch.draw(pieceTexture, getGridX(piece.j()), getGridY(piece.i()));
     }
 
     // TODO: see if we can cache the image for the background since it is likely to be static.
@@ -117,64 +143,99 @@ public class DisplayBoard {
                 Tile below = board.tileBelow(tile);
                 if (below == null || below.isOutside()) {
                     // Inside is up.
-                    drawWall(batch, tile.i(), tile.j(), Direction.NORTH);
+                    drawWall(batch, tile, Direction.NORTH);
                 } else {
                     // Inside is down.
-                    drawWall(batch, tile.i(), tile.j(), Direction.SOUTH);
+                    drawWall(batch, tile, Direction.SOUTH);
                 }
             }
             else if (tile.isWallVertical()) {
                 Tile right = board.tileRightOf(tile);
                 if (right == null || right.isOutside()) {
                     // Inside is left.
-                    drawWall(batch, tile.i(), tile.j(), Direction.WEST);
+                    drawWall(batch, tile, Direction.WEST);
                 } else {
                     // Inside is right.
-                    drawWall(batch, tile.i(), tile.j(), Direction.EAST);
+                    drawWall(batch, tile, Direction.EAST);
                 }
             } else if (tile.isWallCorner()) {
                 Tile encased = board.tileEncased(tile);
                 if (!encased.isOutside()) {
-                    // Skip drawing this tile.
-                    return;
-                }
-                // We should draw this corner.
-                if (tile.wallNorth()) drawWall(batch, tile.i(), tile.j(), Direction.SOUTH);
-                else drawWall(batch, tile.i(), tile.j(), Direction.NORTH);
+                    // Draw the tiny square.
+                    float x = getGridX(tile.j());
+                    float y = getGridY(tile.i());
+                    if (tile.wallSouth()) {
+                        y += diameter - borderSize;
+                    }
+                    if (tile.wallEast()) {
+                        x += diameter - borderSize;
+                    }
+                    batch.draw(wallTexture, x, y, borderSize, borderSize);
+                } else {
+                    // We should draw this corner.
+                    if (tile.wallNorth()) drawWall(batch, tile, Direction.SOUTH);
+                    else drawWall(batch, tile, Direction.NORTH);
 
-                if (tile.wallWest()) drawWall(batch, tile.i(), tile.j(), Direction.EAST);
-                else drawWall(batch, tile.i(), tile.j(), Direction.WEST);
+                    if (tile.wallWest()) drawWall(batch, tile, Direction.EAST);
+                    else drawWall(batch, tile, Direction.WEST);
+                }
             }
+        }
+        else if (tile.type() == Type.HOLE) {
+            Texture holeTexture = holeTextures.get(tile.holeNumber() - 1);
+            batch.draw(holeTexture,
+                    getGridX(tile.j()),
+                    getGridY(tile.i()),
+                    diameter,
+                    diameter
+            );
+        } else if (tile.type() == Type.BLOCK) {
+            batch.draw(wallTexture,
+                    getGridX(tile.j()),
+                    getGridY(tile.i()),
+                    diameter,
+                    diameter
+            );
         }
     }
 
-    private void drawWall(Batch batch, int i, int j, Direction direction) {
+    private void drawWall(Batch batch, Tile tile, Direction direction) {
+        int i = tile.i();
+        int j = tile.j();
         float x = 0, y = 0, width = 0, height = 0;
-        switch (direction) {
-            case NORTH:
-                x = getGridXWithoutBorder(j);
-                y = getGridYWithoutBorder(i) + diameter + borderSize;
-                width = diameter + 2 * borderSize;
-                height = borderSize;
-                break;
-            case SOUTH:
-                x = getGridXWithoutBorder(j);
-                y = getGridYWithoutBorder(i);
-                width = diameter + 2 * borderSize;
-                height = borderSize;
-                break;
-            case WEST:
-                x = getGridXWithoutBorder(j);
-                y = getGridYWithoutBorder(i);
-                width = borderSize;
-                height = diameter + 2 * borderSize;
-                break;
-            case EAST:
-                x = getGridXWithoutBorder(j) + diameter + borderSize;
-                y = getGridYWithoutBorder(i);
-                width = borderSize;
-                height = diameter + 2 * borderSize;
-                break;
+
+        if (direction == Direction.NORTH || direction == Direction.SOUTH) {
+            x = getGridX(j);
+            y = getGridY(i);
+            width = diameter;
+            height = borderSize;
+
+            if (direction == Direction.SOUTH) {
+                y += diameter - borderSize;
+            }
+            if (tile.wallWest()) {
+                x -= borderSize;
+                width += borderSize;
+            }
+            if (tile.wallEast()) {
+                width += borderSize;
+            }
+        } else if (direction == Direction.WEST || direction == Direction.EAST) {
+            x = getGridX(j);
+            y = getGridY(i);
+            width = borderSize;
+            height = diameter;
+
+            if (direction == Direction.EAST) {
+                x += diameter - borderSize;
+            }
+            if (tile.wallNorth()) {
+                y -= borderSize;
+                height += borderSize;
+            }
+            if (tile.wallSouth()) {
+                height += borderSize;
+            }
         }
         batch.draw(wallTexture, x, y, width, height);
     }
@@ -187,12 +248,11 @@ public class DisplayBoard {
         return westCenterOffset + PADDING + diameter * i + borderSize * i;
     }
 
-    // Y coordinate is flipped.
     private float getGridY(int i) {
-        return SCREEN_HEIGHT - (northCenterOffset + PADDING + diameter * i + borderSize * (i + 1));
+        return northCenterOffset + PADDING + diameter * i + borderSize * (i + 1);
     }
 
     private float getGridYWithoutBorder(int i) {
-        return SCREEN_HEIGHT - (northCenterOffset + PADDING + diameter * i + borderSize * i);
+        return northCenterOffset + PADDING + diameter * i + borderSize * i;
     }
 }
