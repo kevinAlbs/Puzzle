@@ -12,8 +12,8 @@ public class DesktopLauncher {
 		Options options = new Options(arg);
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.resizable = false;
-        config.width = 400;
-        config.height = 600;
+        config.width = 500;
+        config.height = 500;
 
         // If no arguments are passed, run as usual.
         new LwjglApplication(new PuzzleGame(options), config);

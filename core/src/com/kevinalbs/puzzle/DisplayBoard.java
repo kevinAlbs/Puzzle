@@ -23,11 +23,14 @@ public class DisplayBoard {
     private Board board;
     private enum State { ADDING, REMOVING, INTERPOLATING, IDLE };
 
-    // The time in seconds it takes to interpolate one move.
-    private static final float INTERPOLATION_TIME = .5f;
+    // TODO: determine min screen dimensions based on largest board needed.
+    // Then in screen class, scale the camera if necessary.
+    public static final int MIN_SCREEN_WIDTH = 0;
+    public static final int MIN_SCREEN_HEIGHT = 0;
 
-    private static final float SCREEN_WIDTH = Gdx.graphics.getWidth();
-    private static final float SCREEN_HEIGHT = Gdx.graphics.getHeight();
+    private static final float MOVE_INTERPOLATION_TIME_PER_SPACE = .1f;
+    private static float SCREEN_WIDTH;
+    private static float SCREEN_HEIGHT;
 
     // This is the padding on one side. All four sides have equal padding.
     // Note, because walls are drawn inward, the padding is likely unnecessary.
@@ -38,11 +41,11 @@ public class DisplayBoard {
 
     // This is the preferred percentage of the displayable screen (without padding)
     // filled by the board. This is only used to scale up the board if higher sizes are available.
-    private static final float PREFERRED_MIN_RATIO_FILLED = .3f;
+    private static final float PREFERRED_MIN_RATIO_FILLED = .9f;
 
     // The following corresponds to available images to render piece sizes. This must be in
     // increasing sorted order and have corresponding pieces/<x>/piece#.png files.
-    private int[] availableDiameterSizes = {20, 32, 64, 128};
+    private int[] availableDiameterSizes = {20, 32, 64, 96, 128};
     private int borderSize = 2;
 
     // If there is extra room, the board is centered. The offsets say how much space from the
@@ -51,19 +54,24 @@ public class DisplayBoard {
     private float westCenterOffset = 0;
 
     private int diameter;
-    private Texture wallTexture;
+    private Texture wallTexture, insideTexture;
     private Array<Texture> pieceTextures;
     private Array<Texture> holeTextures;
     private LinkedList<Piece> pieces;
 
     private State state = State.IDLE;
 
+    private Interpolator iInterpolator, jInterpolator;
+
     public DisplayBoard(PuzzleGame game, Board board) {
         this.game = game;
         this.board = board;
+        this.SCREEN_WIDTH = this.game.camera.viewportWidth;
+        this.SCREEN_HEIGHT = this.game.camera.viewportHeight;
         this.pieces = new LinkedList<Piece>();
         board.getPieces(this.pieces);
         this.wallTexture = new Texture("wall.png");
+        this.insideTexture = new Texture("inside.png");
         this.holeTextures = new Array<Texture>();
         this.pieceTextures = new Array<Texture>();
 
@@ -82,6 +90,9 @@ public class DisplayBoard {
         int numCols = board.getNumCols();
 
         // TODO If the screen size is large enough, make the border thicker.
+        if (SCREEN_WIDTH > 800 && SCREEN_HEIGHT > 800) {
+            borderSize = 4;
+        }
         // If the preferred size cannot fit in either width/height of screen, scale down.
         float maxDiameterHorizontal =
                 (SCREEN_WIDTH - (PADDING * 2) - (numCols + 1) * borderSize) / numCols;
@@ -103,6 +114,7 @@ public class DisplayBoard {
         while (chosenIndex < availableDiameterSizes.length - 1
                 && availableDiameterSizes[chosenIndex] / maxDiameter < PREFERRED_MIN_RATIO_FILLED) {
             if (availableDiameterSizes[chosenIndex + 1] < maxDiameter) chosenIndex++;
+            else break;
         }
 
         diameter = availableDiameterSizes[chosenIndex];
@@ -127,19 +139,42 @@ public class DisplayBoard {
             drawPiece(batch, piece);
         }
         batch.end();
+
+        if (this.state != State.IDLE) {
+            tickAnimations();
+        }
     }
 
+    private void tickAnimations() {
+        if (iInterpolator.isFinished() && jInterpolator.isFinished()) {
+            // Replace our internal pieces.
+            this.state = State.IDLE;
+            board.getPieces(this.pieces);
+            Gdx.graphics.requestRendering();
+        }
 
-    public void interpolateChange(BoardChange change) {
+        if (this.state == State.INTERPOLATING) {
+            // Update move interpolators.
+            iInterpolator.tick();
+            jInterpolator.tick();
+        }
+    }
+
+    public void applyChange(BoardChange change) {
         if (!isIdle()) {
             throw new IllegalStateException("Cannot interpolate new change, already interpolating");
         }
         Direction direction = change.direction();
-        int iDiff = Board.iIncrement(direction);
-        int jDiff = Board.jIncrement(direction);
+        int numSpaces = change.numSpaces();
+        int iDiff = Board.iIncrement(direction) * numSpaces;
+        int jDiff = Board.jIncrement(direction) * numSpaces;
 
-        // TODO actually interpolate.
-        this.board.getPieces(this.pieces);
+        iInterpolator = new Interpolator(
+                MOVE_INTERPOLATION_TIME_PER_SPACE * numSpaces, 0, iDiff * (diameter + borderSize));
+        jInterpolator = new Interpolator(
+                MOVE_INTERPOLATION_TIME_PER_SPACE * numSpaces, 0, jDiff * (diameter + borderSize));
+
+        this.state = State.INTERPOLATING;
     }
 
     public boolean isIdle() {
@@ -148,7 +183,13 @@ public class DisplayBoard {
 
     private void drawPiece(Batch batch, Piece piece) {
         Texture pieceTexture = pieceTextures.get(piece.pieceNumber() - 1);
-        batch.draw(pieceTexture, getGridX(piece.j()), getGridY(piece.i()));
+        float x = getGridX(piece.j());
+        float y = getGridY(piece.i());
+        if (this.state == State.INTERPOLATING) {
+            x += jInterpolator.getValue();
+            y += iInterpolator.getValue();
+        }
+        batch.draw(pieceTexture, x, y);
     }
 
     // TODO: see if we can cache the image for the background since it is likely to be static.
@@ -207,6 +248,13 @@ public class DisplayBoard {
             );
         } else if (tile.type() == Type.BLOCK) {
             batch.draw(wallTexture,
+                    getGridX(tile.j()),
+                    getGridY(tile.i()),
+                    diameter,
+                    diameter
+            );
+        } else if (tile.type() == Type.EMPTY && !tile.isOutside()) {
+            batch.draw(insideTexture,
                     getGridX(tile.j()),
                     getGridY(tile.i()),
                     diameter,

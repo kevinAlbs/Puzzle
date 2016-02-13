@@ -3,9 +3,12 @@ package com.kevinalbs.puzzle;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.input.GestureDetector.GestureAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 
 import com.kevinalbs.puzzle.Board.Direction;
 
@@ -15,6 +18,7 @@ public class PuzzleGame extends ApplicationAdapter {
     Options options;
     DisplayBoard displayBoard;
     Board board;
+    PuzzleInputListener inputListener;
 
 	public PuzzleGame() {
         super();
@@ -33,8 +37,11 @@ public class PuzzleGame extends ApplicationAdapter {
 		batch = new SpriteBatch();
 
         BoardReader reader = new BoardReader();
-        board = reader.getBoard(1);
+        board = reader.getBoard(0);
         displayBoard = new DisplayBoard(this, board);
+
+        inputListener = new PuzzleInputListener();
+        Gdx.input.setInputProcessor(new GestureDetector(inputListener));
 
         // Disable continuous rendering until a swipe motion is made.
         Gdx.graphics.setContinuousRendering(false);
@@ -49,21 +56,23 @@ public class PuzzleGame extends ApplicationAdapter {
 
         BoardChange change = null;
         Direction direction = null;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+
+        if (inputListener.isIndicatingEast()) {
             direction = Direction.EAST;
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+        } else if (inputListener.isIndicatingWest()) {
             direction = Direction.WEST;
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+        } else if (inputListener.isIndicatingNorth()) {
             direction = Direction.NORTH;
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+        } else if (inputListener.isIndicatingSouth()) {
             direction = Direction.SOUTH;
         }
 
         // A move can only be made once the display board is idle.
         if (direction != null && displayBoard.isIdle()) {
+            inputListener.clear();
             change = board.move(direction);
             if (change != null) {
-                displayBoard.interpolateChange(change);
+                displayBoard.applyChange(change);
             }
         }
 
