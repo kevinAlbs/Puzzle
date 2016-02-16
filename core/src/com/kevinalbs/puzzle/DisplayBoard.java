@@ -63,11 +63,11 @@ public class DisplayBoard {
 
     private Interpolator iInterpolator, jInterpolator;
 
-    public DisplayBoard(PuzzleGame game, Board board) {
+    public DisplayBoard(PuzzleGame game, Board board, float viewportWidth, float viewportHeight) {
         this.game = game;
         this.board = board;
-        this.SCREEN_WIDTH = this.game.camera.viewportWidth;
-        this.SCREEN_HEIGHT = this.game.camera.viewportHeight;
+        this.SCREEN_WIDTH = viewportWidth;
+        this.SCREEN_HEIGHT = viewportHeight;
         this.pieces = new LinkedList<Piece>();
         board.getPieces(this.pieces);
         this.wallTexture = new Texture("wall.png");
@@ -78,6 +78,7 @@ public class DisplayBoard {
         determineDimensions();
 
         for (int i = 1; i <= Board.MAX_PIECES; i++) {
+            // TODO: use repository loader to prevent reloading.
             // Load appropriate piece textures based on screen size.
             this.pieceTextures.add(new Texture("pieces/" + diameter + "/" + i + ".png"));
             this.holeTextures.add(new Texture("holes/" + i + ".png"));

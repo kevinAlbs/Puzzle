@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2;
 public class PuzzleInputListener implements GestureDetector.GestureListener, InputProcessor {
     private boolean westDown, eastDown, northDown, southDown;
     private boolean swipeEast, swipeWest, swipeNorth, swipeSouth;
+    private boolean longPressed;
     private static float swipeThreshold = 50;
 
     public boolean isIndicatingEast() {
@@ -41,9 +42,13 @@ public class PuzzleInputListener implements GestureDetector.GestureListener, Inp
 
     @Override
     public boolean longPress(float x, float y) {
-        return false;
+        longPressed = true;
+        return true;
     }
 
+    public boolean isLongPressed() {
+        return longPressed;
+    }
     @Override
     public boolean fling(float velocityX, float velocityY, int button) {
         float difference = Math.abs(velocityX) - Math.abs(velocityY);
@@ -156,5 +161,6 @@ public class PuzzleInputListener implements GestureDetector.GestureListener, Inp
     public void clear() {
         swipeEast = swipeNorth = swipeWest = swipeSouth = false;
         eastDown = northDown = westDown = southDown = false;
+        longPressed = false;
     }
 }
