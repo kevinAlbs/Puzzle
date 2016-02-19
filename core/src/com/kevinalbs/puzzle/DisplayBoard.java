@@ -170,10 +170,11 @@ public class DisplayBoard {
         int iDiff = Board.iIncrement(direction) * numSpaces;
         int jDiff = Board.jIncrement(direction) * numSpaces;
 
+        float interpolatorTime = MOVE_INTERPOLATION_TIME_PER_SPACE * Math.min(numSpaces, 4);
         iInterpolator = new Interpolator(
-                MOVE_INTERPOLATION_TIME_PER_SPACE * numSpaces, 0, iDiff * (diameter + borderSize));
+                interpolatorTime, 0, iDiff * (diameter + borderSize));
         jInterpolator = new Interpolator(
-                MOVE_INTERPOLATION_TIME_PER_SPACE * numSpaces, 0, jDiff * (diameter + borderSize));
+                interpolatorTime, 0, jDiff * (diameter + borderSize));
 
         this.state = State.INTERPOLATING;
     }

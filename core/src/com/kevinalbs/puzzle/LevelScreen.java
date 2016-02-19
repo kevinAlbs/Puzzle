@@ -70,12 +70,14 @@ public class LevelScreen extends ScreenAdapter {
             this.loadLevel(++currentLevel);
             inputListener.clear();
         }
-        else if (direction != null && displayBoard.isIdle()) {
+        else if (direction != null) {
             // A move can only be made once the display board is idle.
             inputListener.clear();
-            change = board.move(direction);
-            if (change != null) {
-                displayBoard.applyChange(change);
+            if (displayBoard.isIdle()) {
+                change = board.move(direction);
+                if (change != null) {
+                    displayBoard.applyChange(change);
+                }
             }
         }
 

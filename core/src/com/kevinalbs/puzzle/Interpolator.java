@@ -17,7 +17,7 @@ public class Interpolator {
     private Interpolation interpolation;
 
     public Interpolator(float interpolationTime, float startValue, float endValue) {
-        this(interpolationTime, startValue, endValue, Interpolation.pow2In);
+        this(interpolationTime, startValue, endValue, Interpolation.linear);
     }
 
     public Interpolator(float interpolationTime,

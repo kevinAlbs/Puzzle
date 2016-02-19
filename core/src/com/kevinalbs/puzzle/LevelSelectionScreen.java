@@ -46,6 +46,8 @@ public class LevelSelectionScreen extends ScreenAdapter {
         //table.setDebug(true);
         stage.addActor(table);
 
+        // For Android use the gdx-freetype extension to get appropriate scaling.
+        // HTML does not support this, but fortunately we need only consider one viewport for HTML.
         font = new BitmapFont(Gdx.files.internal("overpass.fnt"));
 
         Texture defaultBorderTexture = new Texture("buttons/default.png");
