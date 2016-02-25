@@ -7,13 +7,13 @@ public class PuzzleGame extends Game {
 	SpriteBatch batch;
     Options options;
 
-	public PuzzleGame() {
-        super();
-		options = new Options();
+	public PuzzleGame(FontLoader fontLoader) {
+        this(fontLoader, new Options());
 	}
 
-    public PuzzleGame(Options options) {
+    public PuzzleGame(FontLoader fontLoader, Options options) {
         super();
+		ResourceLoader.init(fontLoader);
         this.options = options;
     }
 	

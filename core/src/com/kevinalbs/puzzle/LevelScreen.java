@@ -42,6 +42,9 @@ public class LevelScreen extends ScreenAdapter {
     }
 
     private void loadLevel(int level) {
+        if (level > reader.getNumBoards() - 1) {
+            return;
+        }
         currentLevel = level;
         board = reader.getBoard(currentLevel);
         displayBoard = new DisplayBoard(game, board, camera.viewportWidth, camera.viewportHeight);
@@ -67,7 +70,7 @@ public class LevelScreen extends ScreenAdapter {
         }
 
         if (inputListener.isLongPressed()) {
-            this.loadLevel(++currentLevel);
+            this.loadLevel(currentLevel);
             inputListener.clear();
         }
         else if (direction != null) {
@@ -86,6 +89,10 @@ public class LevelScreen extends ScreenAdapter {
 
         if (!displayBoard.isIdle()) {
             Gdx.graphics.requestRendering();
+        }
+
+        if (displayBoard.isIdle() && board.isBoardCleared()) {
+            loadLevel(currentLevel + 1);
         }
     }
 }

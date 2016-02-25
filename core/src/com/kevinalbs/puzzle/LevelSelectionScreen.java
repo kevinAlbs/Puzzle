@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -34,9 +35,11 @@ public class LevelSelectionScreen extends ScreenAdapter {
     private BitmapFont font;
     private OrthographicCamera camera;
     private SpriteBatch batch;
+    private ResourceLoader loader;
 
     public LevelSelectionScreen(PuzzleGame game) {
         this.game = game;
+        this.loader = ResourceLoader.get();
         stage = new Stage(new ScreenViewport());
         float stageWidth = stage.getWidth();
         float stageHeight = stage.getHeight();
@@ -48,13 +51,15 @@ public class LevelSelectionScreen extends ScreenAdapter {
 
         // For Android use the gdx-freetype extension to get appropriate scaling.
         // HTML does not support this, but fortunately we need only consider one viewport for HTML.
-        font = new BitmapFont(Gdx.files.internal("overpass.fnt"));
+        // So our HTML fontLoader can just load those premade font sizes.
 
-        Texture defaultBorderTexture = new Texture("buttons/default.png");
+        font = loader.getFont("overpass.ttf", (int) (stageHeight / 15));
+
+        Texture defaultBorderTexture = loader.getTexture("buttons/default.png");
         NinePatch defaultNinePatch = new NinePatch(defaultBorderTexture, 8, 8, 8, 8);
         NinePatchDrawable defaultDrawable = new NinePatchDrawable(defaultNinePatch);
 
-        Texture overBorderTexture = new Texture("buttons/over.png");
+        Texture overBorderTexture =loader.getTexture("buttons/over.png");
         NinePatch overNinePatch = new NinePatch(overBorderTexture, 8, 8, 8, 8);
         NinePatchDrawable overDrawable = new NinePatchDrawable(overNinePatch);
 
@@ -68,7 +73,7 @@ public class LevelSelectionScreen extends ScreenAdapter {
 
         button.addListener(new ChangeListener() {
             public void changed(ChangeEvent event, Actor actor) {
-                LevelSelectionScreen.this.game.setScreen(new LevelScreen(LevelSelectionScreen.this.game, 2));
+                LevelSelectionScreen.this.game.setScreen(new LevelScreen(LevelSelectionScreen.this.game, 0));
             }
         });
 

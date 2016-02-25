@@ -55,6 +55,7 @@ public class DisplayBoard {
 
     private int diameter;
     private Texture wallTexture, insideTexture;
+    private ResourceLoader loader;
     private Array<Texture> pieceTextures;
     private Array<Texture> holeTextures;
     private LinkedList<Piece> pieces;
@@ -70,18 +71,18 @@ public class DisplayBoard {
         this.SCREEN_HEIGHT = viewportHeight;
         this.pieces = new LinkedList<Piece>();
         board.getPieces(this.pieces);
-        this.wallTexture = new Texture("wall.png");
-        this.insideTexture = new Texture("inside.png");
+        this.loader = ResourceLoader.get();
+        this.wallTexture = loader.getTexture("wall.png");
+        this.insideTexture = loader.getTexture("inside.png");
         this.holeTextures = new Array<Texture>();
         this.pieceTextures = new Array<Texture>();
 
         determineDimensions();
 
         for (int i = 1; i <= Board.MAX_PIECES; i++) {
-            // TODO: use repository loader to prevent reloading.
             // Load appropriate piece textures based on screen size.
-            this.pieceTextures.add(new Texture("pieces/" + diameter + "/" + i + ".png"));
-            this.holeTextures.add(new Texture("holes/" + i + ".png"));
+            this.pieceTextures.add(loader.getTexture("pieces/" + diameter + "/" + i + ".png"));
+            this.holeTextures.add(loader.getTexture("holes/" + i + ".png"));
         }
 
     }

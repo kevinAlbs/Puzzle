@@ -9,7 +9,7 @@ import java.util.LinkedList;
  */
 public class Board {
     public enum Direction {NORTH, EAST, SOUTH, WEST};
-    public static int MAX_PIECES = 2;
+    public static int MAX_PIECES = 5;
 
     private int boardWidth, boardHeight;
     private Array<Tile> tiles;

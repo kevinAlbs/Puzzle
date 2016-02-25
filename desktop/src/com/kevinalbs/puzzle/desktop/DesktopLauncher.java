@@ -16,7 +16,7 @@ public class DesktopLauncher {
         config.height = 500;
 
         // If no arguments are passed, run as usual.
-        new LwjglApplication(new PuzzleGame(options), config);
+        new LwjglApplication(new PuzzleGame(new DesktopFontLoader(), options), config);
         return;
 
 	}

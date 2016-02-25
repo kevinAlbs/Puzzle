@@ -40,5 +40,17 @@
     ],
     "solution": "",
     "verified": false
+  },
+  {
+    "board": [
+      "+------+",
+      "|32  # |",
+      "|31   C|",
+      "|C  BA#|",
+      "|    ##|",
+      "+------+"
+    ],
+    "solution": "",
+    "verified": false
   }
 ]

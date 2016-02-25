@@ -20,6 +20,11 @@ public class BoardReader {
         this.json = reader.parse(Gdx.files.internal(BOARD_FILE));
         boardCache = new HashMap<Integer, Board>(10);
     }
+
+    public int getNumBoards() {
+        return json.size;
+    }
+
     public Board getBoard(int index) {
         if (boardCache.containsKey(index)) {
             return boardCache.get(index);
