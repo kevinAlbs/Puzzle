@@ -87,7 +87,7 @@ public class DisplayBoard {
 
     }
 
-    public void determineDimensions() {
+    private void determineDimensions() {
         int numRows = board.getNumRows();
         int numCols = board.getNumCols();
 
@@ -127,6 +127,10 @@ public class DisplayBoard {
         float boardHeight = (numRows + 1) * borderSize + numRows * diameter;
         westCenterOffset = (SCREEN_WIDTH - boardWidth) / 2;
         northCenterOffset = (SCREEN_HEIGHT - boardHeight) / 2;
+    }
+
+    public int getCellDimension() {
+        return diameter;
     }
 
     public void render(Batch batch) {
