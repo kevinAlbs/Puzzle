@@ -133,6 +133,11 @@ public class DisplayBoard {
         return diameter;
     }
 
+    public int getAvailableVerticalPadding () {
+        // Diameter is added because wall borders are shown inwards.
+        return (int)northCenterOffset + diameter;
+    }
+
     public void render(Batch batch) {
         batch.begin();
         for (int i = 0; i < board.getNumRows(); i++) {
