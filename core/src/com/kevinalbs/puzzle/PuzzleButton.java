@@ -2,11 +2,14 @@ package com.kevinalbs.puzzle;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 /**
  * Created by Kevin on 2/29/2016.
@@ -37,17 +40,33 @@ public class PuzzleButton extends TextButton {
     }
 
     public static PuzzleButton make(String text, int fontSize) {
+        return PuzzleButton.make(text, fontSize, 0, 0);
+    }
+
+    public static PuzzleButton make(String text,
+                                    int fontSize,
+                                    int horizontalPadding,
+                                    int verticalPadding) {
         ResourceLoader loader = ResourceLoader.get();
         BitmapFont buttonFont = loader.getFont("overpass.ttf", fontSize);
 
-        Texture buttonTexture = loader.getTexture("buttons/default.9.png");
-        Texture buttonOverTexture = loader.getTexture("buttons/over.9.png");
+        // Create textures.
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(new Color(.478f, .478f, .478f,1));
+        pixmap.fill();
 
-        NinePatch buttonNinePatch = new NinePatch(buttonTexture, 8, 8, 8, 8);
-        NinePatchDrawable buttonDrawable = new NinePatchDrawable(buttonNinePatch);
+        Texture buttonTexture = new Texture(pixmap);
+        TextureRegion buttonTextureRegion = new TextureRegion(buttonTexture);
+        TextureRegionDrawable buttonDrawable = new TextureRegionDrawable(buttonTextureRegion);
 
-        NinePatch buttonOverNinePatch = new NinePatch(buttonOverTexture, 8, 8, 8, 8);
-        NinePatchDrawable buttonOverDrawable = new NinePatchDrawable(buttonOverNinePatch);
+        // Create textures.
+        Pixmap overPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        overPixmap.setColor(new Color(.682f, .682f, .682f, 1));
+        overPixmap.fill();
+
+        Texture buttonOverTexture = new Texture(overPixmap);
+        TextureRegion buttonOverTextureRegion = new TextureRegion(buttonOverTexture);
+        TextureRegionDrawable buttonOverDrawable = new TextureRegionDrawable(buttonOverTextureRegion);
 
         TextButton.TextButtonStyle buttonStyle =
                 new TextButton.TextButtonStyle(buttonDrawable,
@@ -55,8 +74,13 @@ public class PuzzleButton extends TextButton {
                         buttonDrawable,
                         buttonFont);
         buttonStyle.over = buttonOverDrawable;
-        buttonStyle.fontColor = new Color(0,0,0,1);
+        buttonStyle.fontColor = new Color(1, 1, 1, .9f);
 
-        return new PuzzleButton(text, buttonStyle);
+        PuzzleButton button =  new PuzzleButton(text, buttonStyle);
+        button.padLeft(horizontalPadding);
+        button.padRight(horizontalPadding);
+        button.padTop(verticalPadding);
+        button.padBottom(verticalPadding);
+        return button;
     }
 }

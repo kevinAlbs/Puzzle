@@ -40,23 +40,30 @@ public class LevelScreenUI {
         table.setFillParent(true);
         stage.addActor(table);
 
-        int fontSize = Math.max(24, sizeTop / 10);
+        int fontSize = (int)(sizeTop * .5f);
+        int verticalSpaceLeft = sizeTop - fontSize;
+        int verticalPadding = verticalSpaceLeft / 4;
+
         BitmapFont font = loader.getFont("overpass.ttf", fontSize);
 
-        restartButton = PuzzleButton.make("Restart", fontSize);
-        undoButton = PuzzleButton.make("Undo", fontSize);
-        nextButton = PuzzleButton.make("Next Level", fontSize);
-        levelLabel = new Label("Level " + levelNum, new Label.LabelStyle(font, new Color(0,0,0,1)));
 
-        table.padTop(3).top().left().add(restartButton).left().expandX().padLeft(3);
+        restartButton = PuzzleButton.make("Restart", fontSize, verticalPadding * 2, verticalPadding);
+        undoButton = PuzzleButton.make("Undo", fontSize, verticalPadding * 2, verticalPadding);
+        nextButton = PuzzleButton.make("Next Level", fontSize, verticalPadding * 2, verticalPadding);
+        levelLabel = new Label("Level " + levelNum, new Label.LabelStyle(
+                loader.getFont("overpass.ttf", fontSize * 3 / 5)
+                , new Color(0,0,0,1)));
+
+        table.padTop(verticalPadding).top().left().add(restartButton).left().expandX().padLeft(verticalPadding);
         table.add(levelLabel).expandX();
-        table.add(undoButton).right().expandX().padRight(3);
+        table.add(undoButton).right().expandX().padRight(sizeTop / 4);
 
         nextAreaTable = new Table();
         nextAreaTable.setFillParent(true);
         stage.addActor(nextAreaTable);
         nextAreaTable.bottom();
-        nextAreaTable.add(nextButton).bottom().right().expandX().padBottom(3).padRight(3);
+
+        nextAreaTable.add(nextButton).bottom().right().expandX().padBottom(verticalPadding).padRight(verticalPadding);
         toggleNextArea(false);
     }
 

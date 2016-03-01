@@ -68,7 +68,7 @@ public class LevelScreen extends ScreenAdapter {
         currentLevel = level;
         board = reader.getBoard(currentLevel);
         displayBoard = new DisplayBoard(game, board, camera.viewportWidth, camera.viewportHeight);
-        ui.refreshLayout(displayBoard.getAvailableVerticalPadding(), currentLevel + 1);
+        ui.refreshLayout((int)displayBoard.getVerticalPadding(), currentLevel + 1);
     }
 
     @Override

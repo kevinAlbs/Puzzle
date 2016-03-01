@@ -32,9 +32,8 @@ public class DisplayBoard {
     private static float SCREEN_WIDTH;
     private static float SCREEN_HEIGHT;
 
-    // This is the padding on one side. All four sides have equal padding.
-    // Note, because walls are drawn inward, the padding is likely unnecessary.
-    private static final float PADDING = 0;
+    private static float HORIZONTAL_PADDING = 0;
+    private static float VERTICAL_PADDING = 0;
 
     // This refers to the availableDiameterSizes array.
     private static final int PREFERRED_DIAMETER_INDEX = 1;
@@ -70,6 +69,7 @@ public class DisplayBoard {
         this.board = board;
         this.SCREEN_WIDTH = viewportWidth;
         this.SCREEN_HEIGHT = viewportHeight;
+        this.VERTICAL_PADDING = viewportHeight / 25;
         this.pieces = new LinkedList<Piece>();
         board.getPieces(this.pieces);
         this.loader = ResourceLoader.get();
@@ -98,9 +98,9 @@ public class DisplayBoard {
         }
         // If the preferred size cannot fit in either width/height of screen, scale down.
         float maxDiameterHorizontal =
-                (SCREEN_WIDTH - (PADDING * 2) - (numCols + 1) * borderSize) / numCols;
+                (SCREEN_WIDTH - (HORIZONTAL_PADDING * 2) - (numCols + 1) * borderSize) / numCols;
         float maxDiameterVertical =
-                (SCREEN_HEIGHT - (PADDING * 2) - (numRows + 1) * borderSize) / numRows;
+                (SCREEN_HEIGHT - (VERTICAL_PADDING * 2) - (numRows + 1) * borderSize) / numRows;
         float maxDiameter = Math.min(maxDiameterHorizontal, maxDiameterVertical);
         int chosenIndex = -1;
         for (int i = PREFERRED_DIAMETER_INDEX; i >= 0; i--) {
@@ -133,9 +133,9 @@ public class DisplayBoard {
         return diameter;
     }
 
-    public int getAvailableVerticalPadding () {
+    public float getVerticalPadding () {
         // Diameter is added because wall borders are shown inwards.
-        return (int)northCenterOffset + diameter;
+        return VERTICAL_PADDING + diameter;
     }
 
     public void render(Batch batch) {
@@ -365,18 +365,18 @@ public class DisplayBoard {
     }
 
     private float getGridX(int i) {
-        return westCenterOffset + PADDING + diameter * i + borderSize * (i + 1);
+        return westCenterOffset + HORIZONTAL_PADDING + diameter * i + borderSize * (i + 1);
     }
 
     private float getGridXWithoutBorder(int i) {
-        return westCenterOffset + PADDING + diameter * i + borderSize * i;
+        return westCenterOffset + HORIZONTAL_PADDING + diameter * i + borderSize * i;
     }
 
     private float getGridY(int i) {
-        return northCenterOffset + PADDING + diameter * i + borderSize * (i + 1);
+        return northCenterOffset + VERTICAL_PADDING + diameter * i + borderSize * (i + 1);
     }
 
     private float getGridYWithoutBorder(int i) {
-        return northCenterOffset + PADDING + diameter * i + borderSize * i;
+        return northCenterOffset + VERTICAL_PADDING + diameter * i + borderSize * i;
     }
 }

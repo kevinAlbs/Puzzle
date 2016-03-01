@@ -15,7 +15,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.resizable = false;
         config.width = 400;
-        config.height = 500;
+        config.height = 640;
         config.addIcon("./desktop-icon.png", Files.FileType.Internal);
 
         // TODO: remove before releasing.
