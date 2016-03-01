@@ -3,9 +3,13 @@ package com.kevinalbs.puzzle;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Created by Kevin on 2/15/2016.
@@ -31,6 +35,12 @@ public class LevelScreen extends ScreenAdapter {
         ui = new LevelScreenUI(game);
 
         reader = new BoardReader();
+        // Check is user has played before.
+        FileHandle current = Gdx.files.local("currentLevel.txt");
+        if (current.exists()) {
+            String content = current.readString();
+            level = Integer.parseInt(content);
+        }
         loadLevel(level);
 
         inputListener = new PuzzleInputListener();
@@ -47,20 +57,24 @@ public class LevelScreen extends ScreenAdapter {
 
     private void loadLevel(int level) {
         if (level > reader.getNumBoards() - 1) {
+            this.game.setScreen(new EndScreen(game, currentLevel + 1));
             return;
         }
+
+        // Save the level.
+        FileHandle current = Gdx.files.local("currentLevel.txt");
+        current.writeString(level + "", false);
+
         currentLevel = level;
         board = reader.getBoard(currentLevel);
         displayBoard = new DisplayBoard(game, board, camera.viewportWidth, camera.viewportHeight);
-        ui.refreshLayout(displayBoard.getAvailableVerticalPadding());
+        ui.refreshLayout(displayBoard.getAvailableVerticalPadding(), currentLevel + 1);
     }
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(.957f, .957f, .957f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        ui.render(delta);
 
         camera.update();
 
@@ -77,22 +91,28 @@ public class LevelScreen extends ScreenAdapter {
             direction = Board.Direction.SOUTH;
         }
 
-        if (ui.isUndoClicked()) {
-            change = board.undo();
-            if (change != null) {
-                displayBoard.applyChange(change);
+        if (ui.isAttemptingUndo()) {
+            if (!board.isBoardCleared() && displayBoard.isIdle()) {
+                change = board.undo();
+                if (change != null) {
+                    displayBoard.applyChange(change);
+                }
             }
-            // Request rendering to clear the click event.
-            Gdx.graphics.requestRendering();
         }
-        else if (inputListener.isLongPressed()) {
-            this.loadLevel(currentLevel);
-            inputListener.clear();
+        else if (ui.isAttemptingRestart()) {
+            if (!board.isBoardCleared()) {
+                this.loadLevel(currentLevel);
+            }
+        }
+        else if (ui.isAttemptingNext()) {
+            if (board.isBoardCleared()) {
+                this.loadLevel(currentLevel + 1);
+            }
         }
         else if (direction != null) {
             // A move can only be made once the display board is idle.
             inputListener.clear();
-            if (displayBoard.isIdle()) {
+            if (!board.isBoardCleared() && displayBoard.isIdle()) {
                 change = board.move(direction);
                 if (change != null) {
                     displayBoard.applyChange(change);
@@ -100,15 +120,15 @@ public class LevelScreen extends ScreenAdapter {
             }
         }
 
+        if (board.isBoardCleared() && displayBoard.isIdle()) {
+            ui.toggleNextArea(true);
+        } else {
+            ui.toggleNextArea(false);
+        }
+
         game.batch.setProjectionMatrix(camera.combined);
         displayBoard.render(game.batch);
 
-        if (!displayBoard.isIdle()) {
-            Gdx.graphics.requestRendering();
-        }
-
-        if (displayBoard.isIdle() && board.isBoardCleared()) {
-            loadLevel(currentLevel + 1);
-        }
+        ui.render(delta);
     }
 }

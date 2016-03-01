@@ -157,16 +157,9 @@ public class Board {
             }
         }
         pieces = newPieces;
-        BoardChange change = new BoardChange(null, piecesRemoved, direction, numSpaces);
+        BoardChange change = new BoardChange(new LinkedList<Piece>(), piecesRemoved, direction, numSpaces);
         boardChanges.add(change);
         return change;
-    }
-    // TODO.
-
-    // Returns pieces which were removed in the last move.
-    // These pieces will have the (i,j) position of the hole on which they were removed.
-    public LinkedList<Piece> getRemoved() {
-        return null;
     }
 
     public BoardChange undo() {

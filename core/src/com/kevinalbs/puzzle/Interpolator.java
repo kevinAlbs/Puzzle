@@ -35,6 +35,10 @@ public class Interpolator {
 
     public boolean isFinished() { return finished; }
 
+    public void finish() {
+        finished = true;
+    }
+
     public void tick() {
         if (finished) return;
 

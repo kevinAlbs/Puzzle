@@ -9,7 +9,7 @@ import java.util.HashMap;
 /**
  * Created by Kevin on 2/25/2016.
  */
-public class AndroidFontLoader {
+public class AndroidFontLoader implements FontLoader {
     HashMap<String, FreeTypeFontGenerator> generatorCache;
     public AndroidFontLoader() {
         generatorCache = new HashMap<String, FreeTypeFontGenerator>();

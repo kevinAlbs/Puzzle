@@ -62,7 +62,8 @@ public class DisplayBoard {
 
     private State state = State.IDLE;
 
-    private Interpolator iInterpolator, jInterpolator;
+    private Interpolator iInterpolator, jInterpolator, addInterpolator, removeInterpolator;
+    private BoardChange currentChange = null;
 
     public DisplayBoard(PuzzleGame game, Board board, float viewportWidth, float viewportHeight) {
         this.game = game;
@@ -120,7 +121,6 @@ public class DisplayBoard {
         }
 
         diameter = availableDiameterSizes[chosenIndex];
-        System.out.println("Choosing to use diameter size of " + diameter);
 
         // Compute the centering offsets.
         float boardWidth = (numCols + 1) * borderSize + numCols * diameter;
@@ -147,7 +147,17 @@ public class DisplayBoard {
         }
 
         for (Piece piece: this.pieces) {
-            drawPiece(batch, piece);
+            drawPiece(batch, piece, 1);
+        }
+
+        if (this.state == State.ADDING) {
+            for (Piece piece: currentChange.piecesAddedBefore()) {
+                drawPiece(batch, piece, addInterpolator.getValue());
+            }
+        } else if (this.state == State.REMOVING) {
+            for (Piece piece: currentChange.piecesRemovedAfter()) {
+                drawPiece(batch, piece, removeInterpolator.getValue());
+            }
         }
         batch.end();
 
@@ -157,17 +167,36 @@ public class DisplayBoard {
     }
 
     private void tickAnimations() {
-        if (iInterpolator.isFinished() && jInterpolator.isFinished()) {
-            // Replace our internal pieces.
-            this.state = State.IDLE;
-            board.getPieces(this.pieces);
+        if (this.state == State.ADDING) {
+            if (addInterpolator.isFinished()) {
+                pieces.addAll(currentChange.piecesAddedBefore());
+                this.state = State.INTERPOLATING;
+            } else {
+                addInterpolator.tick();
+            }
             Gdx.graphics.requestRendering();
-        }
-
-        if (this.state == State.INTERPOLATING) {
-            // Update move interpolators.
-            iInterpolator.tick();
-            jInterpolator.tick();
+        } else if (this.state == State.INTERPOLATING) {
+            if (iInterpolator.isFinished() && jInterpolator.isFinished()) {
+                this.state = State.REMOVING;
+                // Replace our internal pieces since we're no longer interpolating the position.
+                board.getPieces(this.pieces);
+                if (currentChange.piecesRemovedAfter().size() == 0) {
+                    this.removeInterpolator.finish();
+                }
+            } else {
+                // Update move interpolators.
+                iInterpolator.tick();
+                jInterpolator.tick();
+            }
+            Gdx.graphics.requestRendering();
+        } else if (this.state == State.REMOVING) {
+            if (removeInterpolator.isFinished()) {
+                this.state = State.IDLE;
+                Gdx.graphics.requestRendering();
+            } else {
+                removeInterpolator.tick();
+            }
+            Gdx.graphics.requestRendering();
         }
     }
 
@@ -186,22 +215,41 @@ public class DisplayBoard {
         jInterpolator = new Interpolator(
                 interpolatorTime, 0, jDiff * (diameter + borderSize));
 
-        this.state = State.INTERPOLATING;
+        float pieceTime = .1f;
+        addInterpolator = new Interpolator(pieceTime, 0, 1);
+        removeInterpolator = new Interpolator(pieceTime, 1, 0);
+
+        this.state = State.ADDING;
+
+        if (change.piecesAddedBefore().size() == 0) {
+            addInterpolator.finish();
+        }
+
+        currentChange = change;
+        Gdx.graphics.requestRendering();
     }
 
     public boolean isIdle() {
         return state == State.IDLE;
     }
 
-    private void drawPiece(Batch batch, Piece piece) {
+    private void drawPiece(Batch batch, Piece piece, float scale) {
         Texture pieceTexture = pieceTextures.get(piece.pieceNumber() - 1);
         float x = getGridX(piece.j());
         float y = getGridY(piece.i());
+        float width = pieceTexture.getWidth();
+        float height = pieceTexture.getHeight();
+
         if (this.state == State.INTERPOLATING) {
             x += jInterpolator.getValue();
             y += iInterpolator.getValue();
         }
-        batch.draw(pieceTexture, x, y);
+
+        batch.draw(pieceTexture,
+                x + (width - scale * width)/2 ,
+                y + (height - scale * height)/2,
+                pieceTexture.getWidth() * scale,
+                pieceTexture.getHeight() * scale);
     }
 
     // TODO: see if we can cache the image for the background since it is likely to be static.
