@@ -33,6 +33,7 @@ public class BoardReader {
             System.err.println("Board requested is not in bounds.");
             return null;
         }
+        JsonValue boardJson = json.get(index);
         String[] lines = json.get(index).get("board").asStringArray();
         int boardWidth = lines[0].length();
         for(String line : lines) {
@@ -48,7 +49,28 @@ public class BoardReader {
         Array<Tile> parsedTiles = new Array<Tile>(true, unparsedTiles.size);
 
         parseTiles(boardWidth, unparsedTiles, parsedTiles);
+
+        // The json can have a separate optional piece layer if pieces and holes
+        // overlap.
+        if (boardJson.has("pieces")) {
+            // Pieces are a separate layer.
+            String[] piecesLines = boardJson.get("pieces").asStringArray();
+            parsePieces(piecesLines, pieceList);
+        }
         return new Board(boardWidth, parsedTiles, pieceList);
+    }
+
+    private void parsePieces(String[] lines, LinkedList<Piece> pieceList) {
+        for(int i = 0; i < lines.length; i++) {
+            for(int j = 0; j < lines[i].length(); j++) {
+                char character = lines[i].charAt(j);
+                int difference = character - '1';
+                if (difference >= 0 && difference < 9) {
+                    Piece piece = new Piece(i, j, difference + 1);
+                    pieceList.push(piece);
+                }
+            }
+        }
     }
 
     private void parseBoard(String[] lines, Array<Character> unparsedTileList, LinkedList<Piece> pieceList) {
@@ -110,7 +132,10 @@ public class BoardReader {
         // Note, this requires the board to be constructed correctly (i.e. without holes, and with
         // walls encompassing a non-empty area.
         //
-        // This simply toggles a boolean every time a vertical wall is reached.
+        // This simply toggles a boolean every time a both a north/south wall is found when
+        // scanning along a wall.
+        boolean northSeen = false;
+        boolean southSeen = false;
         for (int i = 0; i < boardHeight; i++) {
             boolean isOutside = true;
             for (int j = 0; j < boardWidth; j++) {
@@ -118,8 +143,15 @@ public class BoardReader {
                 if (tileMaker.type == Tile.Type.EMPTY) {
                     tileMaker.isOutside = isOutside;
                 }
-                if (tileMaker.type == Tile.Type.WALL && tileMaker.wallNorth && tileMaker.wallSouth) {
-                    isOutside = !isOutside;
+                if (tileMaker.type == Tile.Type.WALL) {
+                    northSeen = northSeen || tileMaker.wallNorth;
+                    southSeen = southSeen || tileMaker.wallSouth;
+                    if (northSeen && southSeen) {
+                        isOutside = !isOutside;
+                    }
+                } else {
+                    northSeen = false;
+                    southSeen = false;
                 }
                 tileList.add(tileMaker.make());
             }
