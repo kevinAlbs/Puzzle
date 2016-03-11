@@ -69,7 +69,7 @@ public class DisplayBoard {
         this.board = board;
         this.SCREEN_WIDTH = viewportWidth;
         this.SCREEN_HEIGHT = viewportHeight;
-        this.VERTICAL_PADDING = viewportHeight / 25;
+        this.VERTICAL_PADDING = viewportHeight / 20;
         this.pieces = new LinkedList<Piece>();
         board.getPieces(this.pieces);
         this.loader = ResourceLoader.get();
@@ -135,7 +135,7 @@ public class DisplayBoard {
 
     public float getVerticalPadding () {
         // Diameter is added because wall borders are shown inwards.
-        return VERTICAL_PADDING + diameter;
+        return VERTICAL_PADDING;
     }
 
     public void render(Batch batch) {

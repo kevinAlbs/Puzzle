@@ -20,7 +20,7 @@ public class LevelScreen extends ScreenAdapter {
     private Board board;
     private PuzzleInputListener inputListener;
     private BoardReader reader;
-    private int currentLevel = 0;
+    private int currentLevel = 0, highestLevelObtained = 0;
     private OrthographicCamera camera;
     private LevelScreenUI ui;
 
@@ -41,7 +41,7 @@ public class LevelScreen extends ScreenAdapter {
             String content = current.readString();
             level = Integer.parseInt(content);
         }
-        loadLevel(level);
+        loadLevel(6);
 
         inputListener = new PuzzleInputListener();
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -66,9 +66,14 @@ public class LevelScreen extends ScreenAdapter {
         current.writeString(level + "", false);
 
         currentLevel = level;
+        if (currentLevel > highestLevelObtained) {
+            highestLevelObtained = currentLevel;
+        }
         board = reader.getBoard(currentLevel);
         displayBoard = new DisplayBoard(game, board, camera.viewportWidth, camera.viewportHeight);
-        ui.refreshLayout((int)displayBoard.getVerticalPadding(), currentLevel + 1);
+        ui.refreshLayout((int) displayBoard.getVerticalPadding(), currentLevel + 1);
+        ui.toggleNextButton(currentLevel < highestLevelObtained);
+        ui.togglePrevButton(currentLevel > 0);
     }
 
     @Override
@@ -105,9 +110,12 @@ public class LevelScreen extends ScreenAdapter {
             }
         }
         else if (ui.isAttemptingNext()) {
-            if (board.isBoardCleared()) {
+            if (board.isBoardCleared() || highestLevelObtained > currentLevel) {
                 this.loadLevel(currentLevel + 1);
             }
+        }
+        else if (ui.isAttemptingPrev()) {
+            this.loadLevel(currentLevel - 1);
         }
         else if (direction != null) {
             // A move can only be made once the display board is idle.
@@ -121,9 +129,7 @@ public class LevelScreen extends ScreenAdapter {
         }
 
         if (board.isBoardCleared() && displayBoard.isIdle()) {
-            ui.toggleNextArea(true);
-        } else {
-            ui.toggleNextArea(false);
+            ui.toggleNextButton(true);
         }
 
         game.batch.setProjectionMatrix(camera.combined);

@@ -19,7 +19,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
  */
 public class LevelScreenUI {
     private Stage stage, dialogStage;
-    private PuzzleButton undoButton, restartButton, nextButton;
+    private PuzzleButton undoButton, restartButton, nextButton, prevButton;
     private Table nextAreaTable;
     private Label levelLabel;
 
@@ -50,8 +50,9 @@ public class LevelScreenUI {
         restartButton = PuzzleButton.make("Restart", fontSize, verticalPadding * 2, verticalPadding);
         undoButton = PuzzleButton.make("Undo", fontSize, verticalPadding * 2, verticalPadding);
         nextButton = PuzzleButton.make("Next Level", fontSize, verticalPadding * 2, verticalPadding);
+        prevButton = PuzzleButton.make("Previous Level", fontSize, verticalPadding * 2, verticalPadding);
         levelLabel = new Label("Level " + levelNum, new Label.LabelStyle(
-                loader.getFont("overpass.ttf", fontSize * 3 / 5)
+                loader.getFont("overpass.ttf", fontSize * 4 / 5)
                 , new Color(0,0,0,1)));
 
         table.padTop(verticalPadding).top().left().add(restartButton).left().expandX().padLeft(verticalPadding);
@@ -62,9 +63,10 @@ public class LevelScreenUI {
         nextAreaTable.setFillParent(true);
         stage.addActor(nextAreaTable);
         nextAreaTable.bottom();
-
+        nextAreaTable.add(prevButton).bottom().left().expandX().padBottom(verticalPadding).padLeft(verticalPadding);
         nextAreaTable.add(nextButton).bottom().right().expandX().padBottom(verticalPadding).padRight(verticalPadding);
-        toggleNextArea(false);
+        toggleNextButton(false);
+        togglePrevButton(true);
     }
 
     public void render(float delta) {
@@ -83,6 +85,8 @@ public class LevelScreenUI {
         return undoButton.isJustPressed();
     }
 
+    public boolean isAttemptingPrev() { return prevButton.isJustPressed(); }
+
     public boolean isAttemptingRestart() {
         return restartButton.isJustPressed();
     }
@@ -91,8 +95,12 @@ public class LevelScreenUI {
         return nextButton.isJustPressed();
     }
     
-    public void toggleNextArea(boolean show) {
-        nextAreaTable.setVisible(show);
+    public void toggleNextButton(boolean value) {
+        nextButton.setVisible(value);
+    }
+
+    public void togglePrevButton(boolean value) {
+        prevButton.setVisible(value);
     }
 
     private void showRestartDialog() {
