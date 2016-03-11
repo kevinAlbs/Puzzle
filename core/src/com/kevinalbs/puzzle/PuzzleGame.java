@@ -20,7 +20,7 @@ public class PuzzleGame extends Game {
 	@Override
 	public void create () {
         batch = new SpriteBatch();
-        this.setScreen(new LevelScreen(this, 0));
+        this.setScreen(new LevelScreen(this));
 	}
 
 	@Override

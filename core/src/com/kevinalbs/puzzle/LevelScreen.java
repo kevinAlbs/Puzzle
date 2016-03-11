@@ -24,6 +24,10 @@ public class LevelScreen extends ScreenAdapter {
     private OrthographicCamera camera;
     private LevelScreenUI ui;
 
+    public LevelScreen(PuzzleGame game) {
+        this(game, -1);
+    }
+
     public LevelScreen(PuzzleGame game, int level) {
         this.game = game;
 
@@ -35,13 +39,27 @@ public class LevelScreen extends ScreenAdapter {
         ui = new LevelScreenUI(game);
 
         reader = new BoardReader();
+
+        if (level < -1 || level > reader.getNumBoards() - 1) {
+            throw new IllegalArgumentException("Level invalid");
+        }
+
         // Check is user has played before.
         FileHandle current = Gdx.files.local("currentLevel.txt");
         if (current.exists()) {
             String content = current.readString();
-            level = Integer.parseInt(content);
+            int savedLevel = Integer.parseInt(content);
+            if (savedLevel > level) {
+                highestLevelObtained = savedLevel;
+            }
         }
-        loadLevel(9);
+
+        if (level == -1) {
+            level = highestLevelObtained;
+        }
+
+
+        loadLevel(level);
 
         inputListener = new PuzzleInputListener();
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -61,9 +79,11 @@ public class LevelScreen extends ScreenAdapter {
             return;
         }
 
-        // Save the level.
-        FileHandle current = Gdx.files.local("currentLevel.txt");
-        current.writeString(level + "", false);
+        // Save the level if it's higher.
+        if (level > highestLevelObtained) {
+            FileHandle current = Gdx.files.local("currentLevel.txt");
+            current.writeString(level + "", false);
+        }
 
         currentLevel = level;
         if (currentLevel > highestLevelObtained) {

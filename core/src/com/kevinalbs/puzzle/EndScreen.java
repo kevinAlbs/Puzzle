@@ -35,7 +35,7 @@ public class EndScreen extends ScreenAdapter {
 
         Label label1 = new Label("You've completed all " + numLevels + " levels.", style);
         Label label2 = new Label("New levels come out weekly.", style);
-        retry = PuzzleButton.make("Return", 32, 20, 10);
+        retry = PuzzleButton.make("Back to Levels", 32, 20, 10);
         table.padLeft(10).padTop(10).add(label1).expandX();
         table.row();
         table.add(label2);
@@ -51,7 +51,6 @@ public class EndScreen extends ScreenAdapter {
         stage.draw();
 
         if (retry.isJustPressed()) {
-            //Gdx.files.local("currentLevel.txt").delete();
             game.setScreen(new LevelScreen(game, 0));
         }
     }
