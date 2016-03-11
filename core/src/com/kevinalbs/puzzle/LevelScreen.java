@@ -41,7 +41,7 @@ public class LevelScreen extends ScreenAdapter {
             String content = current.readString();
             level = Integer.parseInt(content);
         }
-        loadLevel(6);
+        loadLevel(9);
 
         inputListener = new PuzzleInputListener();
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -105,9 +105,7 @@ public class LevelScreen extends ScreenAdapter {
             }
         }
         else if (ui.isAttemptingRestart()) {
-            if (!board.isBoardCleared()) {
-                this.loadLevel(currentLevel);
-            }
+            this.loadLevel(currentLevel);
         }
         else if (ui.isAttemptingNext()) {
             if (board.isBoardCleared() || highestLevelObtained > currentLevel) {
