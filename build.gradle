@@ -64,6 +64,8 @@ project(":android") {
     }
 }
 
+/*
+TODO: Removing for the time being until HTML build is supported.
 project(":html") {
     apply plugin: "gwt"
     apply plugin: "war"
@@ -76,6 +78,7 @@ project(":html") {
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
     }
 }
+*/
 
 project(":core") {
     apply plugin: "java"

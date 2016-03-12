@@ -18,11 +18,11 @@ public class DesktopLauncher {
         config.height = 640;
         config.addIcon("./desktop-icon.png", Files.FileType.Internal);
 
-        // TODO: remove before releasing.
-        TexturePacker.Settings settings = new TexturePacker.Settings();
-        settings.maxWidth = 1024;
-        settings.maxHeight = 1024;
-        TexturePacker.process(settings, "./image-sources", "./images", "game");
+//        // TODO: remove before releasing.
+//        TexturePacker.Settings settings = new TexturePacker.Settings();
+//        settings.maxWidth = 1024;
+//        settings.maxHeight = 1024;
+//        TexturePacker.process(settings, "./image-sources", "./images", "game");
 
         // If no arguments are passed, run as usual.
         new LwjglApplication(new PuzzleGame(new DesktopFontLoader(), options), config);
